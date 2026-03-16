@@ -1,35 +1,44 @@
 package me.adrian.paintball.game;
 
 import org.bukkit.Location;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Arena {
-    private String name;
-    private int maxTeams = 2;
-    private Map<GameTeam, Location> spawns = new HashMap<>();
 
+    private String name;
+    private Location spawnLocation;
+    private int teamCount;
+
+    // Constructor que acepta solo el nombre
     public Arena(String name) {
         this.name = name;
     }
 
-    public void setTeams(int teams) {
-        this.maxTeams = teams;
+    // Constructor que acepta nombre + spawn location
+    public Arena(String name, Location spawnLocation) {
+        this.name = name;
+        this.spawnLocation = spawnLocation;
     }
 
-    public int getTeams() {
-        return maxTeams;
+    // Getter y setter para teamCount
+    public int getTeamCount() {
+        return teamCount;
     }
 
-    public void setSpawn(GameTeam team, Location loc) {
-        spawns.put(team, loc);
+    public void setTeamCount(int teamCount) {
+        this.teamCount = teamCount;
     }
 
-    public Location getSpawn(GameTeam team) {
-        return spawns.get(team);
-    }
-
+    // Getter para el nombre
     public String getName() {
         return name;
+    }
+
+    // Getter y setter para spawnLocation
+    public Location getSpawnLocation() {
+        return spawnLocation;
+    }
+
+    public void setSpawnLocation(Location spawnLocation) {
+        this.spawnLocation = spawnLocation;
     }
 }
