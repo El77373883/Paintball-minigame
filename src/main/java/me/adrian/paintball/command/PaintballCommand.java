@@ -1,4 +1,4 @@
-package me.adrian.paintball;
+package me.adrian.paintball.command;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
