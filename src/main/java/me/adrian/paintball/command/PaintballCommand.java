@@ -1,6 +1,5 @@
 package me.adrian.paintball;
 
-import me.adrian.paintball.game.GameManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -17,35 +16,41 @@ public class PaintballCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        if (!(sender instanceof Player)) return false;
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("§6[Paintball] §cSolo jugadores pueden usar estos comandos");
+            return true;
+        }
+
         Player player = (Player) sender;
-        GameManager gm = plugin.getGameManager();
 
         if (args.length == 0) {
-            player.sendMessage("§6[Paintball] §fUsa /paintball join|leave|start");
+            player.sendMessage("§6[Paintball] §fUsa /paintball join, leave, start o stats");
             return true;
         }
 
         switch (args[0].toLowerCase()) {
             case "join":
-                if (gm.join(player)) {
-                    player.sendMessage("§6[Paintball] §aTe uniste al Paintball!");
-                } else {
-                    player.sendMessage("§6[Paintball] §cNo puedes unirte ahora.");
-                }
+                plugin.getGameManager().addPlayer(player);
+                player.sendMessage("§6[Paintball] §aTe has unido a la partida!");
                 break;
+
             case "leave":
-                if (gm.leave(player)) {
-                    player.sendMessage("§6[Paintball] §aSaliste del Paintball!");
-                } else {
-                    player.sendMessage("§6[Paintball] §cNo estás en la partida.");
-                }
+                plugin.getGameManager().removePlayer(player);
+                player.sendMessage("§6[Paintball] §cHas salido de la partida!");
                 break;
+
             case "start":
-                gm.startGame();
+                plugin.getGameManager().startGame();
                 break;
+
+            case "stats":
+                int kills = plugin.getGameManager().getTotalKills(player);
+                int wins = plugin.getGameManager().getTotalWins(player);
+                player.sendMessage("§6[Paintball] §fKills: §a" + kills + " §fVictorias: §a" + wins);
+                break;
+
             default:
-                player.sendMessage("§6[Paintball] §fUsa /paintball join|leave|start");
+                player.sendMessage("§6[Paintball] §cComando no válido. Usa /paintball join, leave, start o stats");
         }
 
         return true;
