@@ -63,10 +63,12 @@ public class GameManager {
         }
     }
 
-    // -------------------- GETTERS --------------------
+    // -------------------- GETTERS / SETTERS --------------------
     public GameState getState() { return state; }
 
     public int getGameTime() { return gameTime; }
+
+    public void setGameTime(int time) { this.gameTime = time; } // ✅ Agregado
 
     public String getMapName() { return mapName; }
 
@@ -244,22 +246,16 @@ public class GameManager {
         totalKills.put(uuid, totalKills.getOrDefault(uuid, 0) + 1);
     }
 
-    public int getKills(Player player) {
-        return kills.getOrDefault(player.getUniqueId(), 0);
-    }
+    public int getKills(Player player) { return kills.getOrDefault(player.getUniqueId(), 0); }
 
-    public int getTotalKills(Player player) {
-        return totalKills.getOrDefault(player.getUniqueId(), 0);
-    }
+    public int getTotalKills(Player player) { return totalKills.getOrDefault(player.getUniqueId(), 0); }
 
     public void addWin(Player player) {
         UUID uuid = player.getUniqueId();
         totalWins.put(uuid, totalWins.getOrDefault(uuid, 0) + 1);
     }
 
-    public int getTotalWins(Player player) {
-        return totalWins.getOrDefault(player.getUniqueId(), 0);
-    }
+    public int getTotalWins(Player player) { return totalWins.getOrDefault(player.getUniqueId(), 0); }
 
     // -------------------- LOBBY / SPAWNS --------------------
     public void setLobbySpawn(Location loc) { this.lobbySpawn = loc; }
