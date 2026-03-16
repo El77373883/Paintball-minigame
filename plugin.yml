@@ -1,1 +1,16 @@
-
+name: PaintballMinigame
+version: 1.0.0
+main: me.adrian.paintball.PaintballPlugin
+api-version: '1.21'
+author: soyadrianyt001
+description: Paintball minigame plugin for Paper/Spigot servers.
+commands:
+  paintball:
+    description: Main paintball command
+    usage: /paintball
+    aliases: [pb]
+permissions:
+  paintball.admin:
+    default: op
+  paintball.play:
+    default: true
