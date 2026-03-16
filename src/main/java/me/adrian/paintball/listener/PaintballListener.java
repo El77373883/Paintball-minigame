@@ -1,37 +1,32 @@
-package me.adrian.paintball;
+package me.adrian.paintball.listener;
 
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.event.Listener;
+import org.bukkit.entity.Player;
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import me.adrian.paintball.game.GameManager;
-import me.adrian.paintball.listener.PaintballListener;
-import me.adrian.paintball.command.PaintballCommand;
-import me.adrian.paintball.command.PaintballAdminCommand;
 
-public class PaintballPlugin extends JavaPlugin {
+public class PaintballListener implements Listener {
 
-    private GameManager gameManager;
+    private final GameManager gameManager;
 
-    @Override
-    public void onEnable() {
-        // Inicializar el GameManager
-        this.gameManager = new GameManager(this);
-
-        // Registrar listener
-        getServer().getPluginManager().registerEvents(new PaintballListener(gameManager), this);
-
-        // Registrar comandos
-        this.getCommand("paintball").setExecutor(new PaintballCommand(this));
-        this.getCommand("paintballadmin").setExecutor(new PaintballAdminCommand(this));
-
-        getLogger().info("PaintballPlugin habilitado correctamente.");
+    public PaintballListener(GameManager gameManager) {
+        this.gameManager = gameManager;
     }
 
-    @Override
-    public void onDisable() {
-        getLogger().info("PaintballPlugin deshabilitado.");
+    public void eliminatePlayer(Player shooter, Player eliminated) {
+        gameManager.eliminate(shooter, eliminated);
+
+        Location loc = eliminated.getLocation();
+        var world = loc.getWorld();
+
+        if (world != null) {
+            world.spawnParticle(Particle.CRIT_MAGIC, loc, 30, 0.5, 0.5, 0.5, 0.1);
+            world.playSound(loc, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1.0f, 1.0f);
+            world.strikeLightningEffect(loc);
+        }
     }
 
-    // Getter para GameManager
-    public GameManager getGameManager() {
-        return gameManager;
-    }
+    // Aquí van otros eventos si los tienes
 }
