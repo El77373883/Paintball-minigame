@@ -23,14 +23,12 @@ public class ScoreboardTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        // Aumentar tiempo si el juego está en curso
         if (gameManager.getState() == GameState.INGAME) {
             gameManager.setGameTime(gameManager.getGameTime() + 1);
         } else {
             gameManager.setGameTime(0);
         }
 
-        // Actualizar scoreboard de todos los jugadores online
         for (Player player : Bukkit.getOnlinePlayers()) {
             updateBoard(player);
         }
@@ -39,14 +37,12 @@ public class ScoreboardTask extends BukkitRunnable {
     private void updateBoard(Player player) {
         Scoreboard board = Bukkit.getScoreboardManager().getNewScoreboard();
 
-        // ---------- TÍTULO PREMIUM ----------
         Objective obj = board.registerNewObjective("paintball", "dummy",
                 ChatColor.DARK_GRAY + "▬▬▬▬▬▬\n" +
-                ChatColor.GOLD + "" + ChatColor.BOLD + "Paintball Minigame\n" +
-                ChatColor.DARK_GRAY + "▬▬▬▬▬▬");
+                        ChatColor.GOLD + "" + ChatColor.BOLD + "Paintball Minigame\n" +
+                        ChatColor.DARK_GRAY + "▬▬▬▬▬▬");
         obj.setDisplaySlot(DisplaySlot.SIDEBAR);
 
-        // ---------- DATOS DEL JUGADOR ----------
         String time = formatTime(gameManager.getGameTime());
         if (gameManager.getGameTime() > 120) time = ChatColor.GREEN + time;
         else if (gameManager.getGameTime() > 60) time = ChatColor.YELLOW + time;
@@ -62,18 +58,16 @@ public class ScoreboardTask extends BukkitRunnable {
         obj.getScore(ChatColor.YELLOW + "Tiempo: " + ChatColor.WHITE + time).setScore(13);
         obj.getScore(ChatColor.YELLOW + "Equipo: " + teamName).setScore(12);
 
-        obj.getScore(ChatColor.GRAY + " ").setScore(11); // separador
+        obj.getScore(ChatColor.GRAY + " ").setScore(11);
 
-        // ---------- VIVOS POR EQUIPO ----------
         obj.getScore(ChatColor.YELLOW + "Vivos: " + ChatColor.WHITE + gameManager.getAliveCount()).setScore(10);
         obj.getScore(ChatColor.BLUE + "Azul: " + ChatColor.WHITE + getAliveNames(GameTeam.BLUE)).setScore(9);
         obj.getScore(ChatColor.RED + "Rojo: " + ChatColor.WHITE + getAliveNames(GameTeam.RED)).setScore(8);
         obj.getScore(ChatColor.GREEN + "Verde: " + ChatColor.WHITE + getAliveNames(GameTeam.GREEN)).setScore(7);
         obj.getScore(ChatColor.LIGHT_PURPLE + "Rosa: " + ChatColor.WHITE + getAliveNames(GameTeam.PINK)).setScore(6);
 
-        obj.getScore(ChatColor.GRAY + " ").setScore(5); // separador
+        obj.getScore(ChatColor.GRAY + " ").setScore(5);
 
-        // ---------- STATS DEL JUGADOR ----------
         obj.getScore(ChatColor.YELLOW + "Kills: " + ChatColor.WHITE + gameManager.getKills(player)).setScore(4);
         obj.getScore(ChatColor.GOLD + "Victorias: " + ChatColor.WHITE + gameManager.getTotalWins(player)).setScore(3);
 
@@ -83,7 +77,6 @@ public class ScoreboardTask extends BukkitRunnable {
         player.setScoreboard(board);
     }
 
-    // Obtener nombres de jugadores vivos por equipo con color
     private String getAliveNames(GameTeam team) {
         StringBuilder sb = new StringBuilder();
         for (UUID uuid : gameManager.getAlivePlayers()) {
@@ -97,7 +90,6 @@ public class ScoreboardTask extends BukkitRunnable {
         return sb.toString();
     }
 
-    // Formatear tiempo mm:ss
     private String formatTime(int totalSeconds) {
         int minutes = totalSeconds / 60;
         int seconds = totalSeconds % 60;
