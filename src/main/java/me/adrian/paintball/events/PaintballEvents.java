@@ -1,4 +1,4 @@
-package me.adrian.paintball;
+package me.adrian.paintball.events;
 
 import me.adrian.paintball.game.GameManager;
 import org.bukkit.Bukkit;
