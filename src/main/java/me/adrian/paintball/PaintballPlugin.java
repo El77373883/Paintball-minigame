@@ -1,38 +1,22 @@
-package me.adrian.paintball;
+package me.adrian.paintball.command;
 
-import me.adrian.paintball.command.PaintballAdminCommand;
-import me.adrian.paintball.command.PaintballCommand;
-import me.adrian.paintball.events.PaintballEvents;
-import org.bukkit.plugin.java.JavaPlugin;
+import me.adrian.paintball.PaintballPlugin;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 
-public class PaintballPlugin extends JavaPlugin {
+public class PaintballCommand implements CommandExecutor {
 
-    private static PaintballPlugin instance;
+    private final PaintballPlugin plugin;
 
-    @Override
-    public void onEnable() {
-        instance = this;
-
-        // Guardar config por defecto
-        saveDefaultConfig();
-
-        // Registrar comandos
-        getCommand("paintball").setExecutor(new PaintballCommand());
-        getCommand("paintballadmin").setExecutor(new PaintballAdminCommand());
-
-        // Registrar eventos
-        getServer().getPluginManager().registerEvents(new PaintballEvents(), this);
-
-        getLogger().info("PaintballPlugin habilitado correctamente.");
+    public PaintballCommand() {
+        this.plugin = PaintballPlugin.getInstance();
     }
 
     @Override
-    public void onDisable() {
-        getLogger().info("PaintballPlugin deshabilitado.");
-    }
-
-    // Método para acceder desde otras clases
-    public static PaintballPlugin getInstance() {
-        return instance;
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        sender.sendMessage("Has ejecutado el comando /paintball!");
+        plugin.getLogger().info(sender.getName() + " ejecutó /paintball");
+        return true;
     }
 }
