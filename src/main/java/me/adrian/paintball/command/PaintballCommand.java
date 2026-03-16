@@ -1,8 +1,6 @@
-package me.adrian.paintball.command;
+package me.adrian.paintball;
 
 import me.adrian.paintball.game.GameManager;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -10,83 +8,44 @@ import org.bukkit.entity.Player;
 
 public class PaintballCommand implements CommandExecutor {
 
-    private final GameManager gameManager;
+    private final PaintballPlugin plugin;
 
-    public PaintballCommand(GameManager gameManager) {
-        this.gameManager = gameManager;
+    public PaintballCommand(PaintballPlugin plugin) {
+        this.plugin = plugin;
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        if (args.length == 0) {
-            sender.sendMessage(ChatColor.YELLOW + "Use: /paintball <join|leave|start|stop|setlobby|addspawn>");
-            return true;
-        }
+        if (!(sender instanceof Player)) return false;
+        Player player = (Player) sender;
+        GameManager gm = plugin.getGameManager();
 
-        if (!(sender instanceof Player player)) {
-            sender.sendMessage("Only players can use this command.");
+        if (args.length == 0) {
+            player.sendMessage("§aUsa /paintball join|leave|start");
             return true;
         }
 
         switch (args[0].toLowerCase()) {
-            case "join" -> {
-                if (gameManager.join(player)) {
-                    player.sendMessage(ChatColor.GREEN + "You joined the paintball game.");
+            case "join":
+                if (gm.join(player)) {
+                    player.sendMessage("§aTe uniste al Paintball!");
                 } else {
-                    player.sendMessage(ChatColor.RED + "You could not join the game.");
+                    player.sendMessage("§cNo puedes unirte ahora.");
                 }
-            }
-
-            case "leave" -> {
-                if (gameManager.leave(player)) {
-                    player.sendMessage(ChatColor.YELLOW + "You left the paintball game.");
+                break;
+            case "leave":
+                if (gm.leave(player)) {
+                    player.sendMessage("§aSaliste del Paintball!");
                 } else {
-                    player.sendMessage(ChatColor.RED + "You are not in the game.");
+                    player.sendMessage("§cNo estás en la partida.");
                 }
-            }
-
-            case "start" -> {
-                if (!player.hasPermission("paintball.admin")) {
-                    player.sendMessage(ChatColor.RED + "You do not have permission.");
-                    return true;
-                }
-
-                gameManager.startGame();
-            }
-
-            case "stop" -> {
-                if (!player.hasPermission("paintball.admin")) {
-                    player.sendMessage(ChatColor.RED + "You do not have permission.");
-                    return true;
-                }
-
-                gameManager.stopGame();
-            }
-
-            case "setlobby" -> {
-                if (!player.hasPermission("paintball.admin")) {
-                    player.sendMessage(ChatColor.RED + "You do not have permission.");
-                    return true;
-                }
-
-                Location loc = player.getLocation();
-                gameManager.setLobbySpawn(loc);
-                player.sendMessage(ChatColor.GREEN + "Lobby spawn set.");
-            }
-
-            case "addspawn" -> {
-                if (!player.hasPermission("paintball.admin")) {
-                    player.sendMessage(ChatColor.RED + "You do not have permission.");
-                    return true;
-                }
-
-                Location loc = player.getLocation();
-                gameManager.addArenaSpawn(loc);
-                player.sendMessage(ChatColor.GREEN + "Arena spawn added.");
-            }
-
-            default -> player.sendMessage(ChatColor.RED + "Unknown subcommand.");
+                break;
+            case "start":
+                gm.startGame();
+                break;
+            default:
+                player.sendMessage("§aUsa /paintball join|leave|start");
         }
 
         return true;
