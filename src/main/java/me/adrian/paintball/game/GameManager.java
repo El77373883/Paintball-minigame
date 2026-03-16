@@ -4,6 +4,7 @@ import me.adrian.paintball.PaintballPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
@@ -11,127 +12,68 @@ public class GameManager {
 
     private final PaintballPlugin plugin;
 
-    // Jugadores en la partida
-    private final Set<UUID> players = new HashSet<>();
-    private final Set<UUID> alivePlayers = new HashSet<>();
-
-    // Teams: RED, BLUE, PINK, GREEN
-    private final Map<UUID, GameTeam> playerTeams = new HashMap<>();
-
-    // Kills, victorias y coins
-    private final Map<UUID, Integer> kills = new HashMap<>();
-    private final Map<UUID, Integer> totalKills = new HashMap<>();
-    private final Map<UUID, Integer> totalWins = new HashMap<>();
-    private final Map<UUID, Integer> coins = new HashMap<>();
+    // Estados y equipos
+    private GameState state = GameState.WAITING;
+    private final Map<Player, GameTeam> playerTeams = new HashMap<>();
+    private final Map<Player, Integer> playerKills = new HashMap<>();
+    private final Map<Player, Integer> playerCoins = new HashMap<>();
 
     // Arenas
     private final Map<String, Arena> arenas = new HashMap<>();
     private Arena currentArena;
 
-    // Estado del juego
-    private GameState state = GameState.WAITING;
-
-    // Tiempo de juego
-    private int gameTime = 0;
+    // Configuraciones temporales para edición de arena
+    private final Map<Player, Location> selectionPoints = new HashMap<>();
 
     public GameManager(PaintballPlugin plugin) {
         this.plugin = plugin;
     }
 
-    // =======================
-    // JUGADORES
-    // =======================
-    public void addPlayer(Player player) {
-        UUID uuid = player.getUniqueId();
-        players.add(uuid);
-        alivePlayers.add(uuid);
-    }
-
-    public void removePlayer(Player player) {
-        UUID uuid = player.getUniqueId();
-        players.remove(uuid);
-        alivePlayers.remove(uuid);
-        playerTeams.remove(uuid);
-    }
-
-    public void leave(Player player) {
-        removePlayer(player);
-        // Podrías agregar teleport al lobby si quieres
-    }
-
-    public boolean isPlaying(Player player) {
-        return players.contains(player.getUniqueId());
-    }
-
-    public boolean isAlive(Player player) {
-        return alivePlayers.contains(player.getUniqueId());
-    }
-
-    // =======================
-    // KILLS, VICTORIAS Y COINS
-    // =======================
-    public void addKill(Player player) {
-        UUID uuid = player.getUniqueId();
-        kills.put(uuid, kills.getOrDefault(uuid, 0) + 1);
-        totalKills.put(uuid, totalKills.getOrDefault(uuid, 0) + 1);
-    }
-
-    public int getKills(Player player) {
-        return kills.getOrDefault(player.getUniqueId(), 0);
-    }
-
-    public void addWin(Player player) {
-        UUID uuid = player.getUniqueId();
-        totalWins.put(uuid, totalWins.getOrDefault(uuid, 0) + 1);
-    }
-
-    public int getTotalWins(Player player) {
-        return totalWins.getOrDefault(player.getUniqueId(), 0);
-    }
-
-    public void addCoins(Player player, int amount) {
-        UUID uuid = player.getUniqueId();
-        coins.put(uuid, coins.getOrDefault(uuid, 0) + amount);
-    }
-
-    public int getCoins(Player player) {
-        return coins.getOrDefault(player.getUniqueId(), 0);
-    }
-
-    // =======================
-    // EQUIPOS
-    // =======================
-    public void setTeam(Player player, GameTeam team) {
-        playerTeams.put(player.getUniqueId(), team);
-    }
-
-    public GameTeam getTeam(Player player) {
-        return playerTeams.get(player.getUniqueId());
-    }
-
-    // =======================
-    // ARENAS
-    // =======================
-    public void createArena(Player player, String name) {
-        if (!arenas.containsKey(name)) {
-            arenas.put(name, new Arena(name));
+    // ================== ARENAS ==================
+    public void createArena(Player admin, String name) {
+        if (selectionPoints.containsKey(admin)) {
+            Arena arena = new Arena(name, selectionPoints.get(admin));
+            arenas.put(name, arena);
+            admin.sendMessage("§aArena '" + name + "' creada correctamente!");
+        } else {
+            admin.sendMessage("§cDebes seleccionar el área primero con /pb select!");
         }
     }
 
-    public void editArena(Player player, String name) {
-        currentArena = arenas.get(name);
+    public void editArena(Player admin, String name) {
+        Arena arena = arenas.get(name);
+        if (arena != null) {
+            currentArena = arena;
+            admin.sendMessage("§aEditando arena: " + name);
+        } else {
+            admin.sendMessage("§cArena no encontrada.");
+        }
     }
 
-    public void removeArena(String name) {
-        arenas.remove(name);
+    public void removeArena(Player admin, String name) {
+        if (arenas.remove(name) != null) {
+            admin.sendMessage("§aArena '" + name + "' eliminada.");
+        } else {
+            admin.sendMessage("§cArena no encontrada.");
+        }
     }
 
-    public void setTeams(Player player, int count) {
-        if (currentArena != null) currentArena.setTeamCount(count);
+    public void setTeams(Player admin, int numTeams) {
+        if (currentArena != null) {
+            currentArena.setTeamCount(numTeams);
+            admin.sendMessage("§aNúmero de equipos de la arena actualizado a " + numTeams);
+        }
     }
 
-    public void setSpawn(Player player, GameTeam team, Location location) {
-        if (currentArena != null) currentArena.setSpawn(team, location);
+    public void setSpawn(Player admin, GameTeam team, Location loc) {
+        if (currentArena != null) {
+            currentArena.setSpawn(team, loc);
+            admin.sendMessage("§aSpawn de " + team.name() + " actualizado!");
+        }
+    }
+
+    public void setCurrentArena(String name) {
+        this.currentArena = arenas.get(name);
     }
 
     public Arena getCurrentArena() {
@@ -142,70 +84,109 @@ public class GameManager {
         return arenas.values();
     }
 
-    public String getMapName() {
-        return currentArena != null ? currentArena.getName() : "Ninguna";
+    // ================== JUGADORES ==================
+    public void addPlayer(Player player) {
+        if (!playerTeams.containsKey(player)) {
+            playerTeams.put(player, null); // Team asignado luego
+            playerKills.put(player, 0);
+            playerCoins.put(player, 0);
+            player.sendMessage("§aTe uniste al Paintball!");
+        }
     }
 
-    // =======================
-    // TIEMPO
-    // =======================
-    public void setGameTime(int seconds) {
-        this.gameTime = seconds;
+    public void removePlayer(Player player) {
+        playerTeams.remove(player);
+        playerKills.remove(player);
+        playerCoins.remove(player);
+        player.sendMessage("§cSaliste del Paintball!");
     }
 
-    public int getGameTime() {
-        return gameTime;
+    public void startGame() {
+        if (state == GameState.WAITING && currentArena != null) {
+            state = GameState.INGAME;
+            Bukkit.broadcastMessage("§aLa partida ha comenzado en " + currentArena.getName());
+            assignTeams();
+            startTimer();
+        }
     }
 
-    // =======================
-    // ESTADO DEL JUEGO
-    // =======================
-    public void setState(GameState state) {
-        this.state = state;
+    // ================== GAMEPLAY ==================
+    private void assignTeams() {
+        List<Player> players = new ArrayList<>(playerTeams.keySet());
+        Collections.shuffle(players);
+        GameTeam[] teams = GameTeam.values();
+
+        int i = 0;
+        for (Player p : players) {
+            GameTeam team = teams[i % currentArena.getTeamCount()];
+            playerTeams.put(p, team);
+            i++;
+            p.sendMessage("§aHas sido asignado al equipo: " + team.name());
+        }
+    }
+
+    private void startTimer() {
+        new BukkitRunnable() {
+            int time = 300; // ejemplo 5 minutos
+
+            @Override
+            public void run() {
+                if (state != GameState.INGAME) {
+                    cancel();
+                    return;
+                }
+
+                if (time <= 0) {
+                    endGame();
+                    cancel();
+                }
+
+                time--;
+            }
+        }.runTaskTimer(plugin, 0, 20);
+    }
+
+    public void endGame() {
+        state = GameState.END;
+        Bukkit.broadcastMessage("§aLa partida ha terminado!");
+        // Recompensar jugadores
+        for (Player p : playerKills.keySet()) {
+            int coins = playerKills.get(p) * 5; // 5 coins por kill
+            playerCoins.put(p, playerCoins.getOrDefault(p, 0) + coins);
+            p.sendMessage("§aGanaste " + coins + " coins!");
+        }
+        playerTeams.clear();
+        playerKills.clear();
+    }
+
+    public void eliminate(Player shooter, Player victim) {
+        if (state != GameState.INGAME) return;
+
+        playerKills.put(shooter, playerKills.getOrDefault(shooter, 0) + 1);
+        Bukkit.getServer().getWorld(victim.getWorld().getName()).strikeLightningEffect(victim.getLocation()); // rayo efecto
+
+        removePlayer(victim);
+    }
+
+    // ================== GETTERS ==================
+    public GameTeam getTeam(Player player) {
+        return playerTeams.get(player);
+    }
+
+    public int getKills(Player player) {
+        return playerKills.getOrDefault(player, 0);
+    }
+
+    public int getTotalKills(Player player) {
+        return getKills(player);
+    }
+
+    public int getCoins(Player player) {
+        return playerCoins.getOrDefault(player, 0);
     }
 
     public GameState getState() {
         return state;
     }
 
-    // =======================
-    // INICIO Y FIN DEL JUEGO
-    // =======================
-    public void startGame() {
-        if (currentArena == null) return;
-        setState(GameState.PLAYING);
-        alivePlayers.addAll(players);
-        kills.clear();
-        gameTime = 0;
-        // Puedes agregar lógica de teleporte a spawns
-    }
-
-    public void endGame() {
-        setState(GameState.FINISHED);
-        // Dar coins a todos los jugadores vivos
-        for (UUID uuid : alivePlayers) {
-            Player p = Bukkit.getPlayer(uuid);
-            if (p != null) addCoins(p, 50); // Ejemplo
-        }
-        alivePlayers.clear();
-        playerTeams.clear();
-    }
-
-    public void eliminate(Player shooter, Player victim) {
-        UUID uuid = victim.getUniqueId();
-        if (!alivePlayers.contains(uuid)) return;
-
-        alivePlayers.remove(uuid);
-        addKill(shooter);
-        addCoins(shooter, 10); // coins por eliminar
-
-        // Si quedan jugadores de un solo equipo, terminar ronda
-        Set<GameTeam> remainingTeams = new HashSet<>();
-        for (UUID alive : alivePlayers) {
-            remainingTeams.add(playerTeams.get(alive));
-        }
-        if (remainingTeams.size() <= 1) {
-            endGame();
-        }
-    }
 }
