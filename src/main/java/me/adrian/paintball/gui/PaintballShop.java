@@ -4,110 +4,87 @@ import me.adrian.paintball.PaintballPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
-public class PaintballShop implements Listener {
+public class PaintballShop {
 
     private final PaintballPlugin plugin;
 
-    // Map con items y su precio en coins
-    private final Map<Material, Integer> shopItems = new HashMap<>();
-
     public PaintballShop(PaintballPlugin plugin) {
         this.plugin = plugin;
-        Bukkit.getPluginManager().registerEvents(this, plugin);
-
-        // Items predeterminados “chidos”
-        shopItems.put(Material.DIAMOND_SWORD, 200);
-        shopItems.put(Material.FIRE_CHARGE, 100); // Bola especial
-        shopItems.put(Material.GLOWSTONE, 50); // Efecto brillante
-        shopItems.put(Material.ELYTRA, 500); // Poder de vuelo
     }
 
-    // =========================
-    // Abrir tienda para jugadores
-    // =========================
+    // GUI para jugadores
     public void openShop(Player player) {
-        Inventory inv = Bukkit.createInventory(null, 27, "§6Paintball Shop");
+        Inventory inv = Bukkit.createInventory(null, 27, "§6§lPaintball Shop");
 
-        int slot = 10;
-        for (Map.Entry<Material, Integer> entry : shopItems.entrySet()) {
-            ItemStack item = new ItemStack(entry.getKey());
-            ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName("§a" + entry.getKey().name());
-            meta.setLore(Arrays.asList("§fPrecio: §6" + entry.getValue() + " coins"));
-            item.setItemMeta(meta);
-            inv.setItem(slot, item);
-            slot++;
-        }
+        // Ejemplos de items “profesionales” con colores y lore
+        inv.setItem(10, createItem(Material.DIAMOND_SWORD,
+                "§b§lEspada Épica",
+                "§7Un arma letal para dominar las partidas",
+                "§eCosto: 50 coins"));
+        inv.setItem(11, createItem(Material.BOW,
+                "§a§lArco de Precisión",
+                "§7Dispara con exactitud y rapidez",
+                "§eCosto: 40 coins"));
+        inv.setItem(12, createItem(Material.SNOWBALL,
+                "§f§lBola de Paintball",
+                "§7El arma principal de tu arsenal",
+                "§eCosto: 5 coins"));
+        inv.setItem(13, createItem(Material.GOLDEN_APPLE,
+                "§6§lManzana Dorada",
+                "§7Recupera tu vida instantáneamente",
+                "§eCosto: 20 coins"));
+        inv.setItem(14, createItem(Material.LEATHER_HELMET,
+                "§d§lCasco de Equipo",
+                "§7Protección básica del equipo",
+                "§eCosto: 15 coins"));
+        inv.setItem(15, createItem(Material.LEATHER_CHESTPLATE,
+                "§d§lPeto del Equipo",
+                "§7Más defensa para tus partidas",
+                "§eCosto: 25 coins"));
 
         player.openInventory(inv);
     }
 
-    // =========================
-    // Abrir editor de tienda para admin
-    // =========================
+    // GUI para edición de tienda (solo admins)
     public void openEditShop(Player player) {
-        Inventory inv = Bukkit.createInventory(null, 27, "§6Paintball Shop Editor");
+        Inventory inv = Bukkit.createInventory(null, 18, "§6§lPaintball Shop Editor");
 
-        int slot = 10;
-        for (Map.Entry<Material, Integer> entry : shopItems.entrySet()) {
-            ItemStack item = new ItemStack(entry.getKey());
-            ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName("§e" + entry.getKey().name());
-            meta.setLore(Arrays.asList("§fPrecio: §6" + entry.getValue() + " coins", "§7Clic para editar/eliminar"));
-            item.setItemMeta(meta);
-            inv.setItem(slot, item);
-            slot++;
-        }
+        inv.setItem(0, createItem(Material.EMERALD,
+                "§aAgregar Item",
+                "§7Click para agregar un nuevo item a la tienda"));
+        inv.setItem(1, createItem(Material.REDSTONE,
+                "§cRemover Item",
+                "§7Click para eliminar un item existente de la tienda"));
+        inv.setItem(2, createItem(Material.PAPER,
+                "§eCambiar Precios",
+                "§7Click para modificar los precios en coins"));
+        inv.setItem(3, createItem(Material.BOOK,
+                "§bInformación de Items",
+                "§7Click para editar descripción y lore de los items"));
 
         player.openInventory(inv);
     }
 
-    // =========================
-    // Manejo de clicks
-    // =========================
-    @EventHandler
-    public void onClick(InventoryClickEvent event) {
-        String title = event.getView().getTitle();
-        if (!title.equals("§6Paintball Shop") && !title.equals("§6Paintball Shop Editor")) return;
-
-        event.setCancelled(true);
-        Player player = (Player) event.getWhoClicked();
-        ItemStack clicked = event.getCurrentItem();
-        if (clicked == null || !clicked.hasItemMeta()) return;
-
-        String itemName = clicked.getType().name();
-
-        if (title.equals("§6Paintball Shop")) {
-            // Comprar item
-            int price = shopItems.getOrDefault(clicked.getType(), 0);
-            int coins = plugin.getGameManager().getCoins(player);
-
-            if (coins >= price) {
-                plugin.getGameManager().addCoins(player, -price);
-                player.getInventory().addItem(new ItemStack(clicked.getType()));
-                player.sendMessage("§6[Paintball] §aHas comprado " + itemName + " por " + price + " coins!");
-            } else {
-                player.sendMessage("§6[Paintball] §cNo tienes suficientes coins para comprar " + itemName);
+    // Método para crear items con nombre, lore y colores
+    private ItemStack createItem(Material material, String displayName, String... loreLines) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(displayName);
+            List<String> lore = new ArrayList<>();
+            for (String line : loreLines) {
+                lore.add(line);
             }
+            meta.setLore(lore);
+            item.setItemMeta(meta);
         }
-
-        if (title.equals("§6Paintball Shop Editor")) {
-            // Solo admin puede editar
-            if (!player.hasPermission("paintball.admin")) return;
-
-            player.sendMessage("§6[Paintball] §eFunción de editar tienda próximamente...");
-            // Aquí se puede expandir para cambiar precio o eliminar item
-        }
+        return item;
     }
 }
