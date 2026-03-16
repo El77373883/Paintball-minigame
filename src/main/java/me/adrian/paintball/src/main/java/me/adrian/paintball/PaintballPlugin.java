@@ -13,7 +13,6 @@ public class PaintballPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // Inicializar GameManager
         this.gameManager = new GameManager();
 
         // Crear arenas de ejemplo
@@ -25,25 +24,19 @@ public class PaintballPlugin extends JavaPlugin {
         arena2.addSpawn(new Location(Bukkit.getWorld("world"), 200, 65, 200));
         arena2.addSpawn(new Location(Bukkit.getWorld("world"), 205, 65, 200));
 
-        // Agregar arenas al GameManager
         gameManager.addArena(arena1);
         gameManager.addArena(arena2);
-
-        // Elegir arena inicial
         gameManager.setCurrentArena("Desert");
 
-        // Iniciar scoreboard que se actualiza cada segundo
+        // Scoreboard
         this.scoreboardTask = new ScoreboardTask(gameManager);
         this.scoreboardTask.runTaskTimer(this, 0, 20L);
 
-        // Registrar eventos
+        // Eventos y comandos
         getServer().getPluginManager().registerEvents(new PaintballEvents(this), this);
-
-        // Registrar comando /paintball
         this.getCommand("paintball").setExecutor(new PaintballCommand(this));
 
-        // Mensaje en consola
-        getServer().getConsoleSender().sendMessage("§aPaintball Plugin habilitado!");
+        getServer().getConsoleSender().sendMessage("§aPaintball Plugin habilitado! Creado por soyadrianyt001");
     }
 
     @Override
@@ -51,7 +44,6 @@ public class PaintballPlugin extends JavaPlugin {
         getServer().getConsoleSender().sendMessage("§cPaintball Plugin deshabilitado!");
     }
 
-    // Getter para GameManager
     public GameManager getGameManager() {
         return gameManager;
     }
