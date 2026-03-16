@@ -15,8 +15,7 @@ public class PaintballAdminCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        sender.sendMessage("Has ejecutado el comando /paintballadmin!");
-        plugin.getLogger().info(sender.getName() + " ejecutó /paintballadmin");
+        sender.sendMessage("Comando PaintballAdmin ejecutado.");
         return true;
     }
 }
