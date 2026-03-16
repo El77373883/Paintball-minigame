@@ -6,23 +6,19 @@ import java.util.Map;
 
 public class GameManager {
 
-    private Arena currentArena;
-    private Map<Player, Boolean> alivePlayers = new HashMap<>();
-    private Map<Player, Integer> totalWins = new HashMap<>();
-    private Map<Player, Integer> kills = new HashMap<>();
-    private Map<Player, String> teams = new HashMap<>();
     private GameState state = GameState.LOBBY;
+    private Arena currentArena;
 
-    // Estados posibles del juego
-    public enum GameState {
-        LOBBY,
-        IN_GAME,
-        END
+    private final Map<Player, GameTeam> teams = new HashMap<>();
+    private final Map<Player, Integer> kills = new HashMap<>();
+    private final Map<Player, Integer> totalWins = new HashMap<>();
+
+    public GameState getState() {
+        return state;
     }
 
-    // Constructor
-    public GameManager(Arena arena) {
-        this.currentArena = arena;
+    public void setState(GameState state) {
+        this.state = state;
     }
 
     public Arena getCurrentArena() {
@@ -33,68 +29,57 @@ public class GameManager {
         this.currentArena = arena;
     }
 
-    // Métodos existentes
+    // Equipo
+    public GameTeam getTeam(Player player) {
+        return teams.getOrDefault(player, GameTeam.NONE);
+    }
+
+    public void setTeam(Player player, GameTeam team) {
+        teams.put(player, team);
+    }
+
+    // Jugador
     public boolean isPlaying(Player player) {
-        return alivePlayers.containsKey(player);
+        return teams.containsKey(player);
     }
 
     public boolean isAlive(Player player) {
-        return alivePlayers.getOrDefault(player, false);
+        return isPlaying(player) && kills.getOrDefault(player, 0) >= 0;
     }
 
     public void leave(Player player) {
-        alivePlayers.remove(player);
+        teams.remove(player);
+        kills.remove(player);
     }
 
-    public String getMapName() {
-        return currentArena != null ? currentArena.getName() : "Ninguna";
+    public void eliminate(Player eliminated, Player killer) {
+        kills.put(eliminated, kills.getOrDefault(eliminated, 0) + 1);
+        totalWins.put(killer, totalWins.getOrDefault(killer, 0) + 1);
+        leave(eliminated);
     }
 
-    public int getGameTime() {
-        return 300; // tiempo de ejemplo
+    public int getKills(Player player) {
+        return kills.getOrDefault(player, 0);
     }
 
     public int getTotalWins(Player player) {
         return totalWins.getOrDefault(player, 0);
     }
 
-    // NUEVOS MÉTODOS
-
-    // 1. Obtener estado del juego
-    public GameState getState() {
-        return state;
+    public int getTeamCount() {
+        return currentArena != null ? currentArena.getTeamCount() : 0;
     }
 
-    public void setState(GameState state) {
-        this.state = state;
+    public void setTeamCount(int count) {
+        if (currentArena != null) currentArena.setTeamCount(count);
     }
 
-    // 2. Eliminar un jugador de otro (registrar kill)
-    public void eliminate(Player eliminator, Player eliminated) {
-        alivePlayers.put(eliminated, false); // Muerto
-        kills.put(eliminator, getKills(eliminator) + 1);
+    public String getMapName() {
+        return currentArena != null ? currentArena.getName() : "Unknown";
     }
 
-    // 3. Obtener equipo de un jugador
-    public String getTeam(Player player) {
-        return teams.getOrDefault(player, "Ninguno");
-    }
-
-    public void setTeam(Player player, String teamName) {
-        teams.put(player, teamName);
-    }
-
-    // 4. Obtener kills de un jugador
-    public int getKills(Player player) {
-        return kills.getOrDefault(player, 0);
-    }
-
-    // Métodos para manipular alivePlayers
-    public void addPlayer(Player player) {
-        alivePlayers.put(player, true);
-    }
-
-    public void removePlayer(Player player) {
-        alivePlayers.remove(player);
+    public int getGameTime() {
+        // Aquí pon la lógica de tiempo de juego
+        return 0;
     }
 }
