@@ -1,4 +1,4 @@
-package me.adrian.paintball.command;
+package me.adrian.paintball;
 
 import me.adrian.paintball.command.PaintballAdminCommand;
 import me.adrian.paintball.command.PaintballCommand;
