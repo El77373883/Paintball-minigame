@@ -36,12 +36,12 @@ public class PaintballPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PaintballEvents(this), this);
         this.getCommand("paintball").setExecutor(new PaintballCommand(this));
 
-        getServer().getConsoleSender().sendMessage("§aPaintball Plugin habilitado! Creado por soyadrianyt001");
+        getServer().getConsoleSender().sendMessage("§6[Paintball] §aPlugin habilitado! Creado por soyadrianyt001");
     }
 
     @Override
     public void onDisable() {
-        getServer().getConsoleSender().sendMessage("§cPaintball Plugin deshabilitado!");
+        getServer().getConsoleSender().sendMessage("§6[Paintball] §cPlugin deshabilitado!");
     }
 
     public GameManager getGameManager() {
