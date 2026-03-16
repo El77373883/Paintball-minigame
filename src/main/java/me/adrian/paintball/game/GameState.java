@@ -1,7 +1,7 @@
 package me.adrian.paintball.game;
 
 public enum GameState {
-    WAITING,
-    INGAME,
+    LOBBY,
+    IN_GAME,
     END
 }
