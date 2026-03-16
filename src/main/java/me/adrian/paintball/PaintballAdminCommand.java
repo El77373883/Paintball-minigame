@@ -1,5 +1,7 @@
 package me.adrian.paintball;
 
+import me.adrian.paintball.gui.PaintballPanel;
+import me.adrian.paintball.gui.PaintballShop;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -25,10 +27,16 @@ public class PaintballAdminCommand implements CommandExecutor {
 
         Player player = (Player) sender;
 
-        // Verificar permiso de administrador
-        if (!player.hasPermission("paintball.admin")) {
-            player.sendMessage("§6[Paintball] §cNo tienes permisos para usar estos comandos de administración.");
-            return true;
+        // Verificar permiso de administrador para todos los comandos de admin
+        if (!player.hasPermission("paintball.admin") && args.length > 0) {
+            String arg0 = args[0].toLowerCase();
+            if (arg0.equals("select") || arg0.equals("create") || arg0.equals("remove") ||
+                arg0.equals("edit") || arg0.equals("setteams") || arg0.equals("setspawn") ||
+                arg0.equals("version") || arg0.equals("creator") || arg0.equals("help") ||
+                arg0.equals("panel") || arg0.equals("editshop")) {
+                player.sendMessage("§6[Paintball] §cNo tienes permisos para usar este comando.");
+                return true;
+            }
         }
 
         if (args.length == 0) {
@@ -39,7 +47,7 @@ public class PaintballAdminCommand implements CommandExecutor {
         switch (args[0].toLowerCase()) {
 
             // =========================
-            // 2️⃣ Selección y creación
+            // 2️⃣ Selección y creación de arenas
             // =========================
             case "select":
                 player.getInventory().addItem(new ItemStack(Material.WOODEN_AXE));
@@ -66,7 +74,7 @@ public class PaintballAdminCommand implements CommandExecutor {
                 break;
 
             // =========================
-            // 3️⃣ Edición avanzada
+            // 3️⃣ Edición avanzada de arenas
             // =========================
             case "edit":
                 if (args.length < 2) {
@@ -97,7 +105,7 @@ public class PaintballAdminCommand implements CommandExecutor {
                 break;
 
             // =========================
-            // 4️⃣ Información
+            // 4️⃣ Información del plugin
             // =========================
             case "version":
                 player.sendMessage("§6[Paintball] §fVersión del plugin: 1.0");
@@ -119,15 +127,37 @@ public class PaintballAdminCommand implements CommandExecutor {
                 player.sendMessage("§a/pa version");
                 player.sendMessage("§a/pa creator");
                 player.sendMessage("§a/pa panel");
+                player.sendMessage("§a/pa shop");
+                player.sendMessage("§a/pa editshop");
                 player.sendMessage("§a/pa help");
                 break;
 
             // =========================
-            // Panel GUI
+            // Panel GUI para admins
             // =========================
             case "panel":
                 PaintballPanel panel = new PaintballPanel(plugin);
                 panel.openPanel(player);
+                break;
+
+            // =========================
+            // Tienda accesible a todos
+            // =========================
+            case "shop":
+                PaintballShop shop = new PaintballShop(plugin);
+                shop.openShop(player);
+                break;
+
+            // =========================
+            // Editor de tienda solo admins
+            // =========================
+            case "editshop":
+                if (!player.hasPermission("paintball.admin")) {
+                    player.sendMessage("§6[Paintball] §cNo tienes permisos para editar la tienda!");
+                    return true;
+                }
+                PaintballShop shopEditor = new PaintballShop(plugin);
+                shopEditor.openEditShop(player);
                 break;
 
             default:
