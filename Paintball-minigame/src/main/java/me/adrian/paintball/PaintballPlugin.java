@@ -10,13 +10,19 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class PaintballPlugin extends JavaPlugin {
 
+    // Instancia estática para poder acceder al plugin desde cualquier clase
     private static PaintballPlugin instance;
+
+    // GameManager controla todo lo relacionado con los juegos y arenas
     private GameManager gameManager;
+
+    // GUI del panel y tienda
     private PaintballPanel panel;
     private PaintballShop shop;
 
     @Override
     public void onEnable() {
+        // Guardamos la instancia del plugin
         instance = this;
 
         // Inicializamos GameManager y le pasamos la instancia del plugin
@@ -27,8 +33,12 @@ public class PaintballPlugin extends JavaPlugin {
         this.shop = new PaintballShop(this);
 
         // Registrar comandos
-        this.getCommand("pa").setExecutor(new PaintballAdminCommand(this));
-        this.getCommand("paintball").setExecutor(new PaintballCommand(this));
+        if (this.getCommand("pa") != null) {
+            this.getCommand("pa").setExecutor(new PaintballAdminCommand(this));
+        }
+        if (this.getCommand("paintball") != null) {
+            this.getCommand("paintball").setExecutor(new PaintballCommand(this));
+        }
 
         // Registrar eventos
         getServer().getPluginManager().registerEvents(new PaintballEvents(this), this);
@@ -39,25 +49,28 @@ public class PaintballPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        getLogger().info("PaintballPlugin desactivado.");
+        // Mensaje de desactivación
+        getLogger().info("PaintballPlugin desactivado correctamente.");
     }
 
-    // Getter de instancia del plugin
+    // ------------------- GETTERS -------------------
+
+    // Retorna la instancia del plugin
     public static PaintballPlugin getInstance() {
         return instance;
     }
 
-    // Getter del GameManager
+    // Retorna el GameManager
     public GameManager getGameManager() {
         return gameManager;
     }
 
-    // Getter del panel
+    // Retorna el panel
     public PaintballPanel getPanel() {
         return panel;
     }
 
-    // Getter de la tienda
+    // Retorna la tienda
     public PaintballShop getShop() {
         return shop;
     }
