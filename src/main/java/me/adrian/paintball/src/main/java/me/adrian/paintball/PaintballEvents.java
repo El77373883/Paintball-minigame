@@ -1,12 +1,11 @@
 package me.adrian.paintball;
 
 import me.adrian.paintball.game.GameManager;
-import org.bukkit.Material;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
-import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.entity.Snowball;
 
 public class PaintballEvents implements Listener {
@@ -34,5 +33,12 @@ public class PaintballEvents implements Listener {
         if (!gm.isPlaying(target) || !gm.isAlive(target)) return;
 
         gm.eliminate(target, shooter);
+
+        // Mensaje agregado prefijo
+        if (shooter != null) {
+            Bukkit.broadcastMessage("§6[Paintball] §c" + target.getName() + " fue eliminado por " + shooter.getName() + "!");
+        } else {
+            Bukkit.broadcastMessage("§6[Paintball] §c" + target.getName() + " fue eliminado!");
+        }
     }
 }
