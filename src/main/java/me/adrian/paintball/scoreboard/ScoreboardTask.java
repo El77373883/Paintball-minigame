@@ -23,17 +23,17 @@ public class ScoreboardTask extends BukkitRunnable {
 
             Objective obj = board.getObjective("paintball");
             if (obj == null) {
-                obj = board.registerNewObjective("paintball", "dummy", "§6Paintball Minigame");
+                obj = board.registerNewObjective("paintball", "dummy", "§6[Paintball] §fMinigame");
                 obj.setDisplaySlot(DisplaySlot.SIDEBAR);
             }
 
-            Score map = obj.getScore("§eMapa: §a" + gm.getMapName());
-            Score time = obj.getScore("§eTiempo: §a" + gm.getGameTime() + "s");
+            Score map = obj.getScore("§fMapa: §a" + gm.getMapName());
+            Score time = obj.getScore("§fTiempo: §a" + gm.getGameTime() + "s");
             GameTeam team = gm.getTeam(player);
             String teamName = (team != null) ? team.name() : "Sin equipo";
-            Score teamScore = obj.getScore("§eEquipo: §a" + teamName);
-            Score kills = obj.getScore("§eKills: §a" + gm.getKills(player));
-            Score wins = obj.getScore("§eVictorias: §a" + gm.getTotalWins(player));
+            Score teamScore = obj.getScore("§fEquipo: §a" + teamName);
+            Score kills = obj.getScore("§fKills: §a" + gm.getKills(player));
+            Score wins = obj.getScore("§fVictorias: §a" + gm.getTotalWins(player));
 
             // Limpiar para que no duplique líneas
             for (String entry : board.getEntries()) {
