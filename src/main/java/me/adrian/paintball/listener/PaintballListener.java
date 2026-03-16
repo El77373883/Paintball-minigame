@@ -1,41 +1,26 @@
-package me.adrian.paintball.listener;
-
-import me.adrian.paintball.game.GameManager;
-import me.adrian.paintball.game.GameState;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.Particle;
+import org.bukkit.World;
+import org.bukkit.Sound;
 
-public class PaintballListener implements Listener {
+public void eliminatePlayer(Player shooter, Player eliminated) {
+    // Lógica que marca al jugador como eliminado en tu GameManager
+    gameManager.eliminate(shooter, eliminated);
 
-    private final GameManager gameManager;
+    // Ubicación del jugador eliminado
+    Location loc = eliminated.getLocation();
+    World world = loc.getWorld();
 
-    public PaintballListener(GameManager gameManager) {
-        this.gameManager = gameManager;
-    }
+    if (world != null) {
+        // Efecto visual de trueno
+        world.spawnParticle(Particle.CRIT_MAGIC, loc, 30, 0.5, 0.5, 0.5, 0.1);
 
-    @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent event) {
-        Player dead = event.getEntity();
-        Player killer = dead.getKiller();
+        // Efecto de sonido de trueno
+        world.playSound(loc, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1.0f, 1.0f);
 
-        // Solo ejecutar si el juego está en curso
-        if (gameManager.getState() == GameState.IN_GAME) {
-            if (killer != null) {
-                gameManager.eliminate(dead, killer);
-            } else {
-                gameManager.eliminate(dead, null);
-            }
-        }
-    }
-
-    @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
-        if (gameManager.isPlaying(player)) {
-            gameManager.leave(player);
-        }
+        // Opcional: rayo visual (solo visual, no daña)
+        world.strikeLightningEffect(loc);
     }
 }
