@@ -25,6 +25,12 @@ public class PaintballAdminCommand implements CommandExecutor {
 
         Player player = (Player) sender;
 
+        // Verificar permiso de administrador
+        if (!player.hasPermission("paintball.admin")) {
+            player.sendMessage("§6[Paintball] §cNo tienes permisos para usar estos comandos de administración.");
+            return true;
+        }
+
         if (args.length == 0) {
             player.sendMessage("§6[Paintball] §fUsa /pb o /pa help para ver todos los comandos");
             return true;
@@ -112,7 +118,16 @@ public class PaintballAdminCommand implements CommandExecutor {
                 player.sendMessage("§a/pa setspawn <RED|BLUE|PINK|GREEN>");
                 player.sendMessage("§a/pa version");
                 player.sendMessage("§a/pa creator");
+                player.sendMessage("§a/pa panel");
                 player.sendMessage("§a/pa help");
+                break;
+
+            // =========================
+            // Panel GUI
+            // =========================
+            case "panel":
+                PaintballPanel panel = new PaintballPanel(plugin);
+                panel.openPanel(player);
                 break;
 
             default:
