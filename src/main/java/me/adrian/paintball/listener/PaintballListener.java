@@ -2,14 +2,11 @@ package me.adrian.paintball.listener;
 
 import me.adrian.paintball.game.GameManager;
 import me.adrian.paintball.game.GameState;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Snowball;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.entity.Player;
 
 public class PaintballListener implements Listener {
 
@@ -20,47 +17,25 @@ public class PaintballListener implements Listener {
     }
 
     @EventHandler
-    public void onSnowballHit(EntityDamageByEntityEvent event) {
-        Entity victim = event.getEntity();
-        Entity damager = event.getDamager();
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        Player dead = event.getEntity();
+        Player killer = dead.getKiller();
 
-        if (!(victim instanceof Player player)) {
-            return;
+        // Solo ejecutar si el juego está en curso
+        if (gameManager.getState() == GameState.IN_GAME) {
+            if (killer != null) {
+                gameManager.eliminate(dead, killer);
+            } else {
+                gameManager.eliminate(dead, null);
+            }
         }
-
-        if (!(damager instanceof Snowball snowball)) {
-            return;
-        }
-
-        if (!(snowball.getShooter() instanceof Player shooter)) {
-            return;
-        }
-
-        if (gameManager.getState() != GameState.INGAME) {
-            return;
-        }
-
-        if (!gameManager.isPlaying(player) || !gameManager.isPlaying(shooter)) {
-            return;
-        }
-
-        if (!gameManager.isAlive(player) || !gameManager.isAlive(shooter)) {
-            return;
-        }
-
-        event.setCancelled(true);
-        gameManager.eliminate(player, shooter);
     }
 
     @EventHandler
-    public void onDeath(PlayerDeathEvent event) {
-        event.setCancelled(true);
-    }
-
-    @EventHandler
-    public void onQuit(PlayerQuitEvent event) {
-        if (gameManager.isPlaying(event.getPlayer())) {
-            gameManager.leave(event.getPlayer());
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        if (gameManager.isPlaying(player)) {
+            gameManager.leave(player);
         }
     }
 }
