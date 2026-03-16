@@ -1,6 +1,6 @@
 package me.adrian.paintball.command;
 
-import org.bukkit.Bukkit;
+import me.adrian.paintball.PaintballPlugin;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -10,95 +10,45 @@ public class PaintballCommand implements CommandExecutor {
 
     private final PaintballPlugin plugin;
 
-    public PaintballCommand(PaintballPlugin plugin) {
-        this.plugin = plugin;
+    // Constructor: obtiene la instancia del plugin
+    public PaintballCommand() {
+        this.plugin = PaintballPlugin.getInstance();
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-
         if (!(sender instanceof Player)) {
-            sender.sendMessage("[Paintball] Solo jugadores pueden usar estos comandos");
+            sender.sendMessage("Este comando solo puede ser usado por jugadores.");
             return true;
         }
 
         Player player = (Player) sender;
 
         if (args.length == 0) {
-            player.sendMessage("§6[Paintball] §fUsa /paintball help para ver los comandos disponibles");
+            player.sendMessage("Usa /paintball help para ver los comandos.");
             return true;
         }
 
         switch (args[0].toLowerCase()) {
-
-            // =========================
-            // Unirse a la partida
-            // =========================
             case "join":
-                if (plugin.getGameManager().isPlaying(player)) {
-                    player.sendMessage("§6[Paintball] §cYa estás en la partida");
-                    return true;
-                }
-                plugin.getGameManager().addPlayer(player);
-                player.sendMessage("§6[Paintball] §aTe has unido a la partida!");
+                player.sendMessage("Te has unido a la partida de Paintball.");
+                // Aquí podrías agregar la lógica para unir al jugador
                 break;
 
-            // =========================
-            // Salir de la partida
-            // =========================
             case "leave":
-                if (!plugin.getGameManager().isPlaying(player)) {
-                    player.sendMessage("§6[Paintball] §cNo estás en la partida");
-                    return true;
-                }
-                plugin.getGameManager().removePlayer(player);
-                player.sendMessage("§6[Paintball] §cHas salido de la partida");
+                player.sendMessage("Has salido de la partida de Paintball.");
+                // Aquí podrías agregar la lógica para salir de la partida
                 break;
 
-            // =========================
-            // Iniciar partida
-            // =========================
-            case "start":
-                plugin.getGameManager().startGame();
-                Bukkit.broadcastMessage("§6[Paintball] §aLa partida ha comenzado!");
-                break;
-
-            // =========================
-            // Ver estadísticas
-            // =========================
-            case "stats":
-                int kills = plugin.getGameManager().getTotalKills(player);
-                int wins = plugin.getGameManager().getTotalWins(player);
-                int coins = plugin.getGameManager().getCoins(player);
-
-                player.sendMessage("§6[Paintball] §fTus estadísticas:");
-                player.sendMessage("§aKills: §f" + kills);
-                player.sendMessage("§aVictorias: §f" + wins);
-                player.sendMessage("§aCoins: §f" + coins);
-                break;
-
-            // =========================
-            // Solo ver coins
-            // =========================
-            case "coins":
-                int c = plugin.getGameManager().getCoins(player);
-                player.sendMessage("§6[Paintball] §fTienes §a" + c + " coins§f.");
-                break;
-
-            // =========================
-            // Help
-            // =========================
             case "help":
-                player.sendMessage("§6[Paintball] §fComandos disponibles:");
-                player.sendMessage("§a/paintball join §7- Unirse a la partida");
-                player.sendMessage("§a/paintball leave §7- Salir de la partida");
-                player.sendMessage("§a/paintball start §7- Iniciar la partida");
-                player.sendMessage("§a/paintball stats §7- Ver kills, victorias y coins");
-                player.sendMessage("§a/paintball coins §7- Ver solo tus coins");
+                player.sendMessage("Comandos de Paintball:");
+                player.sendMessage("/paintball join - Unirse al juego");
+                player.sendMessage("/paintball leave - Salir del juego");
+                player.sendMessage("/paintball help - Mostrar ayuda");
                 break;
 
             default:
-                player.sendMessage("§6[Paintball] §cComando no válido. Usa /paintball help");
+                player.sendMessage("Comando no reconocido. Usa /paintball help");
         }
 
         return true;
