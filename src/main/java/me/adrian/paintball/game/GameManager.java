@@ -11,20 +11,74 @@ import java.util.*;
 
 public class GameManager {
 
+    // Jugadores
     private final Set<UUID> players = new HashSet<>();
     private final Set<UUID> alivePlayers = new HashSet<>();
+
+    // Estadísticas
     private final Map<UUID, Integer> kills = new HashMap<>();
     private final Map<UUID, Integer> totalKills = new HashMap<>();
     private final Map<UUID, Integer> totalWins = new HashMap<>();
+
+    // Equipos
     private final Map<UUID, GameTeam> playerTeams = new HashMap<>();
 
+    // Estado y tiempo
     private GameState state = GameState.WAITING;
-    private Location lobbySpawn;
-    private final List<Location> arenaSpawns = new ArrayList<>();
-    private String mapName = "Lobby";
     private int gameTime = 0;
 
-    // --------------------------- JOIN / LEAVE ---------------------------
+    // Lobby
+    private Location lobbySpawn;
+
+    // Arenas
+    private final List<Arena> arenas = new ArrayList<>();
+    private Arena currentArena;
+    private String mapName = "Lobby";
+
+    // -------------------- CLASE ARENA --------------------
+    public static class Arena {
+        private final String name;
+        private final List<Location> spawns = new ArrayList<>();
+
+        public Arena(String name) { this.name = name; }
+
+        public String getName() { return name; }
+
+        public List<Location> getSpawns() { return spawns; }
+
+        public void addSpawn(Location loc) { spawns.add(loc); }
+    }
+
+    public void addArena(Arena arena) { arenas.add(arena); }
+
+    public Arena getCurrentArena() { return currentArena; }
+
+    public void setCurrentArena(String name) {
+        for (Arena arena : arenas) {
+            if (arena.getName().equalsIgnoreCase(name)) {
+                currentArena = arena;
+                mapName = arena.getName();
+                break;
+            }
+        }
+    }
+
+    // -------------------- GETTERS --------------------
+    public GameState getState() { return state; }
+
+    public int getGameTime() { return gameTime; }
+
+    public String getMapName() { return mapName; }
+
+    public int getAliveCount() { return alivePlayers.size(); }
+
+    public GameTeam getTeam(Player player) { return playerTeams.get(player.getUniqueId()); }
+
+    public boolean isPlaying(Player player) { return players.contains(player.getUniqueId()); }
+
+    public boolean isAlive(Player player) { return alivePlayers.contains(player.getUniqueId()); }
+
+    // -------------------- JUGAR / SALIR --------------------
     public boolean join(Player player) {
         if (state == GameState.INGAME || state == GameState.ENDING) return false;
         if (players.contains(player.getUniqueId())) return false;
@@ -43,7 +97,6 @@ public class GameManager {
         if (lobbySpawn != null) player.teleport(lobbySpawn);
         giveGun(player);
 
-        // Inicializar scoreboard vacío, ScoreboardTask lo actualizará automáticamente
         player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
 
         checkStart();
@@ -58,11 +111,12 @@ public class GameManager {
 
         player.getInventory().clear();
         if (lobbySpawn != null) player.teleport(lobbySpawn);
+
         checkWin();
         return removed;
     }
 
-    // --------------------------- ELIMINATE / CHECKWIN ---------------------------
+    // -------------------- ELIMINAR / GANAR --------------------
     public void eliminate(Player player, Player killer) {
         UUID uuid = player.getUniqueId();
         if (!alivePlayers.contains(uuid)) return;
@@ -76,9 +130,9 @@ public class GameManager {
         if (lobbySpawn != null) player.teleport(lobbySpawn);
 
         if (killer != null) {
-            Bukkit.broadcastMessage("§c" + player.getName() + " was eliminated by " + killer.getName() + "!");
+            Bukkit.broadcastMessage("§c" + player.getName() + " fue eliminado por " + killer.getName() + "!");
         } else {
-            Bukkit.broadcastMessage("§c" + player.getName() + " was eliminated!");
+            Bukkit.broadcastMessage("§c" + player.getName() + " fue eliminado!");
         }
 
         checkWin();
@@ -92,32 +146,26 @@ public class GameManager {
             Player winner = Bukkit.getPlayer(winnerUUID);
             if (winner != null) {
                 addWin(winner);
-                Bukkit.broadcastMessage("§6" + winner.getName() + " won the paintball game!");
+                Bukkit.broadcastMessage("§6" + winner.getName() + " ganó la partida de Paintball!");
             }
             stopGame();
         } else if (alivePlayers.isEmpty()) {
-            Bukkit.broadcastMessage("§cNo winners this round.");
+            Bukkit.broadcastMessage("§cNo hay ganadores esta ronda.");
             stopGame();
         }
     }
 
-    // --------------------------- START / STOP GAME ---------------------------
+    // -------------------- INICIAR / DETENER --------------------
     public void startGame() {
-        if (players.size() < 2) {
-            Bukkit.broadcastMessage("§cNeed at least 2 players to start.");
-            return;
-        }
-        if (arenaSpawns.size() < players.size()) {
-            Bukkit.broadcastMessage("§cNot enough arena spawns set.");
-            return;
-        }
+        if (players.size() < 2) return;
+        if (currentArena == null || currentArena.getSpawns().size() < players.size()) return;
 
         state = GameState.INGAME;
         alivePlayers.clear();
         assignTeams();
         gameTime = 0;
 
-        List<Location> shuffledSpawns = new ArrayList<>(arenaSpawns);
+        List<Location> shuffledSpawns = new ArrayList<>(currentArena.getSpawns());
         Collections.shuffle(shuffledSpawns);
 
         int index = 0;
@@ -137,7 +185,7 @@ public class GameManager {
             index++;
         }
 
-        Bukkit.broadcastMessage("§aPaintball game started!");
+        Bukkit.broadcastMessage("§a¡Partida de Paintball iniciada en arena: " + mapName + "!");
     }
 
     public void stopGame() {
@@ -158,16 +206,16 @@ public class GameManager {
         playerTeams.clear();
         gameTime = 0;
 
-        Bukkit.broadcastMessage("§ePaintball game ended.");
+        Bukkit.broadcastMessage("§ePartida de Paintball finalizada.");
     }
 
-    // --------------------------- GUN ---------------------------
+    // -------------------- ARMAS --------------------
     public void giveGun(Player player) {
         ItemStack snowballs = new ItemStack(Material.SNOWBALL, 16);
         player.getInventory().addItem(snowballs);
     }
 
-    // --------------------------- TEAMS ---------------------------
+    // -------------------- EQUIPOS --------------------
     public void assignTeams() {
         List<UUID> playerList = new ArrayList<>(players);
         Collections.shuffle(playerList);
@@ -179,10 +227,6 @@ public class GameManager {
         }
     }
 
-    public GameTeam getTeam(Player player) {
-        return playerTeams.get(player.getUniqueId());
-    }
-
     public int getAliveTeamCount(GameTeam team) {
         int count = 0;
         for (UUID uuid : alivePlayers) {
@@ -191,7 +235,9 @@ public class GameManager {
         return count;
     }
 
-    // --------------------------- STATS ---------------------------
+    public Set<UUID> getAlivePlayers() { return alivePlayers; }
+
+    // -------------------- ESTADÍSTICAS --------------------
     public void addKill(Player player) {
         UUID uuid = player.getUniqueId();
         kills.put(uuid, kills.getOrDefault(uuid, 0) + 1);
@@ -215,49 +261,15 @@ public class GameManager {
         return totalWins.getOrDefault(player.getUniqueId(), 0);
     }
 
-    // --------------------------- MAP / TIME ---------------------------
-    public void setMapName(String mapName) {
-        this.mapName = mapName;
-    }
-
-    public String getMapName() {
-        return mapName;
-    }
-
-    public int getGameTime() {
-        return gameTime;
-    }
-
-    public void setGameTime(int time) {
-        this.gameTime = time;
-    }
-
-    // --------------------------- OTHERS ---------------------------
-    public int getAliveCount() {
-        return alivePlayers.size();
-    }
-
-    public int getPlayerCount() {
-        return players.size();
-    }
-
-    public void setLobbySpawn(Location loc) {
-        this.lobbySpawn = loc;
-    }
+    // -------------------- LOBBY / SPAWNS --------------------
+    public void setLobbySpawn(Location loc) { this.lobbySpawn = loc; }
 
     public void addArenaSpawn(Location loc) {
-        arenaSpawns.add(loc);
+        if (currentArena != null) currentArena.addSpawn(loc);
     }
 
-    public List<Location> getArenaSpawns() {
-        return arenaSpawns;
-    }
-
-    public Set<UUID> getAlivePlayers() {
-        return alivePlayers;
-    }
-
+    // -------------------- INICIO AUTOMÁTICO (OPCIONAL) --------------------
     private void checkStart() {
-        // Aquí puedes poner lógica para empezar automáticamente si hay X jugadores
+        // lógica automática de inicio si quieres
     }
 }
