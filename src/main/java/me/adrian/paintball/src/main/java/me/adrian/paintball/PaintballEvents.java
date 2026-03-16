@@ -2,6 +2,9 @@ package me.adrian.paintball;
 
 import me.adrian.paintball.game.GameManager;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -32,13 +35,20 @@ public class PaintballEvents implements Listener {
 
         if (!gm.isPlaying(target) || !gm.isAlive(target)) return;
 
+        // Eliminar jugador y asignar kill
         gm.eliminate(target, shooter);
 
-        // Mensaje agregado prefijo
+        // Mensaje con prefijo
         if (shooter != null) {
-            Bukkit.broadcastMessage("§6[Paintball] §c" + target.getName() + " fue eliminado por " + shooter.getName() + "!");
+            Bukkit.broadcastMessage("§6[Paintball] §c" + target.getName() + " fue fulminado por " + shooter.getName() + " ⚡!");
         } else {
-            Bukkit.broadcastMessage("§6[Paintball] §c" + target.getName() + " fue eliminado!");
+            Bukkit.broadcastMessage("§6[Paintball] §c" + target.getName() + " fue eliminado ⚡!");
         }
+
+        // ===== EFECTO DE RAYO DE MUERTE =====
+        Location loc = target.getLocation();
+        loc.getWorld().strikeLightningEffect(loc);
+        loc.getWorld().spawnParticle(Particle.EXPLOSION_NORMAL, loc, 20, 0.5, 1, 0.5, 0.1);
+        loc.getWorld().playSound(loc, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1f, 1f);
     }
 }
