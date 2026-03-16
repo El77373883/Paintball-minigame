@@ -1,30 +1,27 @@
-package me.adrian.paintball;
-
-import me.adrian.paintball.command.PaintballCommand;
 import me.adrian.paintball.game.GameManager;
-import me.adrian.paintball.listener.PaintballListener;
+import me.adrian.paintball.scoreboard.ScoreboardTask;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class PaintballPlugin extends JavaPlugin {
+public class PaintballPlugin extends JavaPlugin {
 
     private GameManager gameManager;
+    private ScoreboardTask scoreboardTask;
 
     @Override
     public void onEnable() {
-        this.gameManager = new GameManager();
+        // Inicializar GameManager
+        gameManager = new GameManager();
 
-        if (getCommand("paintball") != null) {
-            getCommand("paintball").setExecutor(new PaintballCommand(gameManager));
-        }
+        // Iniciar el scoreboard que se actualiza cada segundo (20 ticks)
+        scoreboardTask = new ScoreboardTask(gameManager);
+        scoreboardTask.runTaskTimer(this, 0, 20L); // 0 = empieza de inmediato, 20L = cada segundo
 
-        getServer().getPluginManager().registerEvents(new PaintballListener(gameManager), this);
-
-        getLogger().info("PaintballMinigame enabled! Created by soyadrianyt001");
+        getServer().getConsoleSender().sendMessage("§aPaintball Plugin habilitado!");
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("PaintballMinigame disabled!");
+        getServer().getConsoleSender().sendMessage("§cPaintball Plugin deshabilitado!");
     }
 
     public GameManager getGameManager() {
