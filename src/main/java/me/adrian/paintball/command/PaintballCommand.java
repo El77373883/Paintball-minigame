@@ -22,30 +22,30 @@ public class PaintballCommand implements CommandExecutor {
         GameManager gm = plugin.getGameManager();
 
         if (args.length == 0) {
-            player.sendMessage("§aUsa /paintball join|leave|start");
+            player.sendMessage("§6[Paintball] §fUsa /paintball join|leave|start");
             return true;
         }
 
         switch (args[0].toLowerCase()) {
             case "join":
                 if (gm.join(player)) {
-                    player.sendMessage("§aTe uniste al Paintball!");
+                    player.sendMessage("§6[Paintball] §aTe uniste al Paintball!");
                 } else {
-                    player.sendMessage("§cNo puedes unirte ahora.");
+                    player.sendMessage("§6[Paintball] §cNo puedes unirte ahora.");
                 }
                 break;
             case "leave":
                 if (gm.leave(player)) {
-                    player.sendMessage("§aSaliste del Paintball!");
+                    player.sendMessage("§6[Paintball] §aSaliste del Paintball!");
                 } else {
-                    player.sendMessage("§cNo estás en la partida.");
+                    player.sendMessage("§6[Paintball] §cNo estás en la partida.");
                 }
                 break;
             case "start":
                 gm.startGame();
                 break;
             default:
-                player.sendMessage("§aUsa /paintball join|leave|start");
+                player.sendMessage("§6[Paintball] §fUsa /paintball join|leave|start");
         }
 
         return true;
